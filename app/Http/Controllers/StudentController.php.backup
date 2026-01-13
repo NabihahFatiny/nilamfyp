@@ -1,0 +1,302 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Student;
+use App\Models\Book;
+use App\Models\Challenge;
+use App\Models\Summary;
+use App\Models\Report;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+
+class StudentController extends Controller
+{
+    public function login(Request $request)
+    {
+        $email = $request->email;
+        $password = $request->password;
+
+        $student = Student::where('email', $email)->first();
+
+        if ($student) {
+            $valid = false;
+            if (str_starts_with($student->password, '$')) {
+                $valid = password_verify($password, $student->password);
+            } else {
+                $valid = $student->password == $password;
+            }
+            if ($valid) {
+                Session::put('id_student', $student->id_student);
+                Session::put('email', $student->email);
+                return redirect()->route('student.dashboard');
+            }
+        }
+        return back()->with('error', 'Invalid credentials');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:students',
+            'password' => 'required',
+            'dob' => 'required|date',
+        ]);
+
+        Student::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password), // hash for new
+            'dob' => $request->dob,
+        ]);
+
+        return redirect()->route('student.login')->with('success', 'Registration successful');
+    }
+
+    public function dashboard()
+    {
+        if (!Session::has('id_student')) {
+            return redirect()->route('student.login');
+        }
+
+        $student = Student::find(Session::get('id_student'));
+        $summaries = $student->summaries->take(5); // recent summaries
+        $challenges = $student->challenges->take(5); // recent challenges
+
+        return view('student.dashboard', compact('student', 'summaries', 'challenges'));
+    }
+
+    public function profile()
+    {
+        if (!Session::has('id_student')) {
+            return redirect()->route('student.login');
+        }
+
+        $student = Student::find(Session::get('id_student'));
+        return view('student.profile', compact('student'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email',
+            'dob' => 'required|date',
+            'class' => 'nullable',
+            'address' => 'nullable',
+            'photo' => 'nullable|image|max:2048',
+        ]);
+
+        $student = Student::find(Session::get('id_student'));
+        $data = $request->only(['name', 'email', 'dob', 'class', 'address']);
+
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $filename = $student->id_student . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('photo'), $filename);
+            $data['photo'] = $filename;
+        }
+
+        $student->update($data);
+
+        return back()->with('success', 'Profile updated');
+    }
+
+    public function manageBooks()
+    {
+        if (!Session::has('id_student')) {
+            return redirect()->route('student.login');
+        }
+
+        $student = Student::find(Session::get('id_student'));
+        $summaries = $student->summaries;
+        return view('student.books', compact('summaries', 'student'));
+    }
+
+    public function storeBook(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'book' => 'required',
+            'summary' => 'required',
+        ]);
+
+        Summary::create([
+            'id_student' => Session::get('id_student'),
+            'date' => $request->date,
+            'book' => $request->book,
+            'summary' => $request->summary,
+        ]);
+
+        return back()->with('success', 'Summary added');
+    }
+
+    public function updateBook(Request $request, $id)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'book' => 'required',
+            'summary' => 'required',
+        ]);
+
+        $summary = Summary::find($id);
+        if ($summary && $summary->id_student == Session::get('id_student')) {
+            $summary->update($request->only(['date', 'book', 'summary']));
+        }
+
+        return back()->with('success', 'Summary updated');
+    }
+
+    public function deleteBook($id)
+    {
+        $summary = Summary::find($id);
+        if ($summary && $summary->id_student == Session::get('id_student')) {
+            $summary->delete();
+        }
+
+        return back()->with('success', 'Summary deleted');
+    }
+
+    public function manageChallenges()
+    {
+        if (!Session::has('id_student')) {
+            return redirect()->route('student.login');
+        }
+
+        $student = Student::find(Session::get('id_student'));
+        $challenges = $student->challenges;
+        return view('student.challenges', compact('challenges', 'student'));
+    }
+
+    public function storeChallenge(Request $request)
+    {
+        $request->validate([
+            'date_finished' => 'required|date',
+            'title' => 'required',
+            'rating' => 'required',
+        ]);
+
+        Challenge::create([
+            'id_student' => Session::get('id_student'),
+            'date_finished' => $request->date_finished,
+            'title' => $request->title,
+            'rating' => $request->rating,
+        ]);
+
+        return back()->with('success', 'Challenge added');
+    }
+
+    public function updateChallenge(Request $request, $id)
+    {
+        $request->validate([
+            'date_finished' => 'required|date',
+            'title' => 'required',
+            'rating' => 'required',
+        ]);
+
+        $challenge = Challenge::find($id);
+        if ($challenge && $challenge->id_student == Session::get('id_student')) {
+            $challenge->update($request->only(['date_finished', 'title', 'rating']));
+        }
+
+        return back()->with('success', 'Challenge updated');
+    }
+
+    public function deleteChallenge($id)
+    {
+        $challenge = Challenge::find($id);
+        if ($challenge && $challenge->id_student == Session::get('id_student')) {
+            $challenge->delete();
+        }
+
+        return back()->with('success', 'Challenge deleted');
+    }
+
+    public function reports()
+    {
+        if (!Session::has('id_student')) {
+            return redirect()->route('student.login');
+        }
+
+        $student = Student::find(Session::get('id_student'));
+        $reports = $student->reports;
+        return view('student.reports', compact('reports', 'student'));
+    }
+
+    public function deletePhoto($id)
+    {
+        $student = Student::find($id);
+        if ($student && $student->photo) {
+            $filePath = public_path('photo/' . $student->photo);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            $student->photo = null;
+            $student->save();
+        }
+        return back();
+    }
+
+    public function storeChallenge(Request $request)
+    {
+        $request->validate([
+            'date_finished' => 'required|date',
+            'title' => 'required',
+            'rating' => 'required',
+        ]);
+
+        Challenge::create([
+            'id_student' => Session::get('id_student'),
+            'date_finished' => $request->date_finished,
+            'title' => $request->title,
+            'rating' => $request->rating,
+        ]);
+
+        return back()->with('success', 'Challenge added');
+    }
+
+    public function updateChallenge(Request $request, $id)
+    {
+        $request->validate([
+            'date_finished' => 'required|date',
+            'title' => 'required',
+            'rating' => 'required',
+        ]);
+
+        $challenge = Challenge::find($id);
+        if ($challenge && $challenge->id_student == Session::get('id_student')) {
+            $challenge->update($request->only(['date_finished', 'title', 'rating']));
+        }
+
+        return back()->with('success', 'Challenge updated');
+    }
+
+    public function deleteChallenge($id)
+    {
+        $challenge = Challenge::find($id);
+        if ($challenge && $challenge->id_student == Session::get('id_student')) {
+            $challenge->delete();
+        }
+
+        return back()->with('success', 'Challenge deleted');
+    }
+
+    public function reports()
+    {
+        if (!Session::has('id_student')) {
+            return redirect()->route('student.login');
+        }
+
+        $student = Student::find(Session::get('id_student'));
+        $reports = $student->reports;
+        return view('student.reports', compact('reports', 'student'));
+    }
+
+    public function logout()
+    {
+        Session::flush();
+        return redirect()->route('student.login');
+    }
+}
