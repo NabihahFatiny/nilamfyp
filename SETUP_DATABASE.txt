@@ -1,0 +1,40 @@
+================================================================================
+DATABASE SETUP FOR NILAM
+================================================================================
+
+OPTION 1 - Automatic (Windows)
+--------------------------------------------------------------------------------
+1. Start XAMPP and make sure MySQL is running.
+
+2. Double-click: setup-database.bat
+
+   This will:
+   - Create the database "nilamfyp" if it does not exist
+   - Run all migrations (create tables)
+   - Seed a default teacher account
+
+3. Log in as teacher:
+   - Go to Teacher Login (or http://localhost/nilamfyp/teacher/login)
+   - Email: teacher@nilam.test
+   - Password: password
+
+
+OPTION 2 - Manual
+--------------------------------------------------------------------------------
+1. Start MySQL in XAMPP.
+
+2. Create the database:
+   - Open phpMyAdmin: http://localhost/phpmyadmin
+   - Click "New" and create a database named: nilamfyp
+   - Or in MySQL command line: CREATE DATABASE nilamfyp;
+
+3. In Command Prompt (in the project folder):
+   cd C:\xampp\htdocs\nilamfyp
+   php artisan migrate --force
+   php artisan db:seed --force
+
+4. Default teacher login:
+   Email: teacher@nilam.test
+   Password: password
+
+================================================================================

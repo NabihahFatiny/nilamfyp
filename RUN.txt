@@ -1,0 +1,35 @@
+================================================================================
+HOW TO OPEN NILAM IN THE BROWSER
+================================================================================
+
+OPTION A - XAMPP (recommended if you use XAMPP)
+--------------------------------------------------------------------------------
+1. Start XAMPP: open XAMPP Control Panel and start Apache + MySQL.
+
+2. In .env you should have (already set):
+   APP_URL=http://localhost/nilamfyp
+   APP_BASE_PATH=nilamfyp
+
+3. Open in browser:
+   http://localhost/nilamfyp
+
+   If that shows "Forbidden" or a directory list:
+   - Try: http://localhost/nilamfyp/index.php
+   - In XAMPP, ensure Apache has AllowOverride set (httpd.conf: AllowOverride All for htdocs).
+
+
+OPTION B - PHP built-in server (php artisan serve)
+--------------------------------------------------------------------------------
+1. In .env change to:
+   APP_URL=http://127.0.0.1:8000
+   APP_BASE_PATH=
+
+2. Double-click: start-server.bat
+   (Or in terminal: cd C:\xampp\htdocs\nilamfyp  then  php artisan serve)
+
+3. Open in browser:
+   http://127.0.0.1:8000
+
+   If "php" is not recognized, use full path: C:\xampp\php\php.exe artisan serve
+
+================================================================================

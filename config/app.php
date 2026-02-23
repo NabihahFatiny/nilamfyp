@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Base Path (for subdirectory e.g. XAMPP: nilamfyp)
+    |--------------------------------------------------------------------------
+    |
+    | When the app is run from a subdirectory (e.g. http://localhost/nilamfyp/),
+    | set this to the folder name so routes and URLs work correctly.
+    | Leave empty when using php artisan serve or when app is at document root.
+    |
+    */
+
+    'base_path' => env('APP_BASE_PATH', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
