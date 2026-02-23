@@ -7,7 +7,7 @@
 
 A digital platform to help students record and monitor their NILAM reading activities. Students can add books they have read, write book summaries, and submit ratings. Teachers will review student submissions and provide evaluation and feedback.
 
-##How to LOgin
+## How to Login
 Email: teacher@nilam.test
 Password: password
 
