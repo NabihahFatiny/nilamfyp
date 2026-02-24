@@ -1,0 +1,13 @@
+# Netlify build config for NILAM (Laravel)
+# IMPORTANT: Netlify does NOT run PHP. This config only fixes the build step.
+# For a working app you must deploy the Laravel backend to a PHP host (see DEPLOY.md).
+
+[build]
+  command = "npm install && npm run build"
+  publish = "public"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
+
